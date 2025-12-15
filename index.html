@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heallio - Emergency Medical Response Without Internet</title>
+    <link rel="stylesheet" href="assets\style\style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="assets\img\logo_healio.png" alt="Heallio Logo" class="logo-image">
+                <span class="logo-text">Heallio</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#problem" class="nav-link">Problem</a>
+                <a href="#solution" class="nav-link">Solution</a>
+                <a href="#team" class="nav-link">Team</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+            <button class="btn-primary">Download App</button>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>UN SDG 3: Good Health & Well-Being</span>
+            </div>
+            
+            <h1 class="hero-title">
+                Emergency Help,<br>
+                <span class="hero-highlight">Even Without Internet</span>
+            </h1>
+            
+            <p class="hero-subtitle">
+                Heallio saves lives by connecting accident victims with emergency services instantly—no internet required.
+            </p>
+            
+            <div class="hero-buttons">
+                <button class="btn-white">Launch App</button>
+                <button class="btn-outline">Learn More</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">1.3M+</div>
+                    <div class="stat-label">Annual Road Deaths</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">&lt;15 min</div>
+                    <div class="stat-label">Golden Hour</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Emergency Support</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Offline Capable</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Statement -->
+    <section id="problem" class="problem-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">The Challenge</span>
+                <h2 class="section-title">Every Second Counts</h2>
+                <p class="section-description">
+                    Accident victims and bystanders face critical delays in emergency medical response during no-internet situations, leading to preventable injuries and loss of life.
+                </p>
+            </div>
+
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon red">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="problem-title">Delayed Response</h3>
+                    <p class="problem-text">
+                        Internet unavailability prevents immediate emergency alerts to hospitals and doctors.
+                    </p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon orange">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="problem-title">Remote Locations</h3>
+                    <p class="problem-text">
+                        Highways, rural areas, and disaster zones often lack reliable network coverage.
+                    </p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon yellow">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="problem-title">Confusion & Panic</h3>
+                    <p class="problem-text">
+                        Bystanders don't know whom to contact or how to provide first aid effectively.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="solution-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag light">Our Solution</span>
+                <h2 class="section-title light">How Heallio Works</h2>
+                <p class="section-description light">
+                    A seamless offline emergency response system that saves lives in critical moments
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <h3 class="feature-title">Works Offline</h3>
+                    <p class="feature-text">
+                        Emergency alerts via SMS and calls, even without internet connectivity
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3 class="feature-title">Instant Alerts</h3>
+                    <p class="feature-text">
+                        Automatically notifies nearby hospitals and emergency services
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Location Sharing</h3>
+                    <p class="feature-text">
+                        Precise accident location sent to emergency responders
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="feature-title">Remote Guidance</h3>
+                    <p class="feature-text">
+                        Doctors provide real-time video/voice first aid instructions
+                    </p>
+                </div>
+            </div>
+
+            <!-- Process Flow -->
+            <div class="process-container">
+                <h3 class="process-title">Emergency Response in 5 Steps</h3>
+                <div class="process-grid">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <h4 class="step-title">Tap SOS</h4>
+                        <p class="step-desc">User activates emergency</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <h4 class="step-title">Offline Alert</h4>
+                        <p class="step-desc">SMS/Call sent automatically</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <h4 class="step-title">Location Shared</h4>
+                        <p class="step-desc">GPS coordinates transmitted</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <h4 class="step-title">Doctor Connects</h4>
+                        <p class="step-desc">Video/voice guidance begins</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">5</div>
+                        <h4 class="step-title">Help Arrives</h4>
+                        <p class="step-desc">Ambulance reaches location</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="team-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our Team</span>
+                <h2 class="section-title">Meet The Innovators</h2>
+                <p class="section-description">
+                    A passionate team dedicated to revolutionizing emergency medical response
+                </p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="assets/img/arun.jpeg" alt="Arun Venugopal">
+                        <div class="team-overlay"></div>
+                    </div>
+                    <h3 class="team-name">Arun Venugopal</h3>
+                    <p class="team-role">UX Assistant Designer & Co-Founder</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="assets/img/hari.jpeg" alt="Harinandh S Nair">
+                        <div class="team-overlay"></div>
+                    </div>
+                    <h3 class="team-name">Harinandh S Nair</h3>
+                    <p class="team-role">UX Core Designer</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="assets/img/sivanand.jpeg" alt="Sivanand Shibu">
+                        <div class="team-overlay"></div>
+                    </div>
+                    <h3 class="team-name">Sivanand Shibu</h3>
+                    <p class="team-role">Android Developer</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="assets/img/badhu.jpeg" alt="Muhammed Badhusha.K.H">
+                        <div class="team-overlay"></div>
+                    </div>
+                    <h3 class="team-name">Muhammed Badhusha.K.H</h3>
+                    <p class="team-role">Web Developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contact" class="cta-section">
+        <div class="cta-content">
+            <i class="fas fa-mobile-alt cta-icon"></i>
+            <h2 class="cta-title">Ready to Save Lives?</h2>
+            <p class="cta-text">
+                Download Heallio today and be prepared for emergencies, even without internet.
+            </p>
+            <div class="cta-buttons">
+                <button class="btn-white">Download on Android</button>
+                <button class="btn-outline-white">View on GitHub</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <img src="assets\img\logo_healio.png" alt="Heallio Logo" class="logo-image">
+                        <span class="logo-text">Heallio</span>
+                    </div>
+                    <p class="footer-desc">
+                        Saving lives through innovative offline emergency medical response technology.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">How It Works</a></li>
+                        <li><a href="">Download</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Team</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Heallio. All rights reserved. | Aligned with UN SDG 3: Good Health & Well-Being</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets\script\script.js"></script>
+</body>
+</html>
