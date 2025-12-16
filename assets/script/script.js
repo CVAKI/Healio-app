@@ -33,7 +33,7 @@ function downloadAPK() {
             // Create download link
             const link = document.createElement('a');
             // FIXED: Corrected path with forward slashes
-            link.href = 'main/healio.apk'; // Your APK file path
+            link.href = 'healio.apk'; // Your APK file path
             link.download = 'Heallio.apk'; // Downloaded filename
             link.setAttribute('type', 'application/vnd.android.package-archive');
             
@@ -431,4 +431,5 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.transition = 'opacity 0.5s ease';
         document.body.style.opacity = '1';
     }, 100);
+
 });
