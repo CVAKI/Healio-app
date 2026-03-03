@@ -39,7 +39,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private static final long LOCATION_UPDATE_INTERVAL_MS = 30_000L;
 
     private TextView tvWelcome, tvUserInfo;
-    private Button btnBookDoctor, btnFirstAid;
+    private Button btnBookDoctor, btnFirstAid, btnMyAppointments;
     private Switch switchNeedAmbulance;
     private BottomNavigationView bottomNavigation;
 
@@ -47,18 +47,13 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private FusedLocationProviderClient fusedLocationClient;
 
-    // Location state
-    private LocationCallback            locationCallback;
-    private CancellationTokenSource     cancellationTokenSource;
-    private boolean                     locationUpdatesStarted = false;
+    private LocationCallback locationCallback;
+    private CancellationTokenSource cancellationTokenSource;
+    private boolean locationUpdatesStarted = false;
 
-    // Last confirmed coordinates (never 0,0 unless genuinely on null island)
     private double currentLatitude  = 0.0;
     private double currentLongitude = 0.0;
 
-    // -----------------------------------------------------------------------
-    // Lifecycle
-    // -----------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,10 +65,9 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         initializeViews();
         setupLocationCallback();
-        requestLocationPermission();   // will kick off updates if already granted
+        requestLocationPermission();
         loadUserData();
         setupListeners();
-
         startPatientNotificationService();
     }
 
@@ -81,7 +75,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         bottomNavigation.setSelectedItemId(R.id.nav_home);
-        startLocationUpdates();   // refresh fix every time the screen is visible
+        startLocationUpdates();
     }
 
     @Override
@@ -94,19 +88,16 @@ public class PatientDashboardActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Don't stop notification service — it should keep running
     }
 
-    // -----------------------------------------------------------------------
-    // Views + listeners
-    // -----------------------------------------------------------------------
     private void initializeViews() {
-        tvWelcome          = findViewById(R.id.tvWelcome);
-        tvUserInfo         = findViewById(R.id.tvUserInfo);
-        btnBookDoctor      = findViewById(R.id.btnBookDoctor);
-        btnFirstAid        = findViewById(R.id.btnFirstAid);
+        tvWelcome           = findViewById(R.id.tvWelcome);
+        tvUserInfo          = findViewById(R.id.tvUserInfo);
+        btnBookDoctor       = findViewById(R.id.btnBookDoctor);
+        btnFirstAid         = findViewById(R.id.btnFirstAid);
+        btnMyAppointments   = findViewById(R.id.btnMyAppointments);
         switchNeedAmbulance = findViewById(R.id.switchNeedAmbulance);
-        bottomNavigation   = findViewById(R.id.bottomNavigation);
+        bottomNavigation    = findViewById(R.id.bottomNavigation);
     }
 
     private void setupListeners() {
@@ -116,9 +107,17 @@ public class PatientDashboardActivity extends AppCompatActivity {
         btnFirstAid.setOnClickListener(v ->
                 startActivity(new Intent(this, FirstAidVideosActivity.class)));
 
+        // ── NEW: My Appointments button ──
+        btnMyAppointments.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AppointmentActivity.class);
+            intent.putExtra("viewMode", "patient");
+            startActivity(intent);
+        });
+
+
         switchNeedAmbulance.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (!isChecked) return;
-            switchNeedAmbulance.setChecked(false); // always reset visually
+            switchNeedAmbulance.setChecked(false);
 
             if (currentLatitude != 0.0 || currentLongitude != 0.0) {
                 Intent intent = new Intent(this, NearbyAmbulanceActivity.class);
@@ -127,7 +126,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 startActivity(intent);
             } else {
                 Toast.makeText(this, "Getting your location…", Toast.LENGTH_SHORT).show();
-                // startLocationUpdates() already running; coordinates will arrive shortly
             }
         });
 
@@ -149,9 +147,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // -----------------------------------------------------------------------
-    // Notification service
-    // -----------------------------------------------------------------------
     private void startPatientNotificationService() {
         Intent serviceIntent = new Intent(this, PatientNotificationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -161,9 +156,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Location permission
-    // -----------------------------------------------------------------------
     private void requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -174,7 +166,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     },
                     LOCATION_PERMISSION_REQUEST);
         }
-        // If already granted, onResume() → startLocationUpdates() handles it
     }
 
     @Override
@@ -193,9 +184,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Location tracking  (same strategy as AmbulanceDriverDashboardActivity)
-    // -----------------------------------------------------------------------
     private boolean isLocationEnabled() {
         LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (lm == null) return false;
@@ -208,60 +196,46 @@ public class PatientDashboardActivity extends AppCompatActivity {
             @Override
             public void onLocationResult(LocationResult result) {
                 if (result.getLastLocation() == null) return;
-                double lat = result.getLastLocation().getLatitude();
-                double lng = result.getLastLocation().getLongitude();
-                Log.d(TAG, "Periodic fix: " + lat + ", " + lng);
-                onLocationReceived(lat, lng);
+                onLocationReceived(
+                        result.getLastLocation().getLatitude(),
+                        result.getLastLocation().getLongitude());
             }
         };
     }
 
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "startLocationUpdates skipped — no permission");
-            return;
-        }
+                != PackageManager.PERMISSION_GRANTED) return;
 
         if (!isLocationEnabled()) {
-            Log.w(TAG, "Location services disabled — prompting user");
             Toast.makeText(this,
-                    "📍 Please enable Location so emergency services can find you.",
+                    "Please enable Location so emergency services can find you.",
                     Toast.LENGTH_LONG).show();
             startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
             return;
         }
 
-        // ── Step 1: Quick network/WiFi fix ──
         cancellationTokenSource = new CancellationTokenSource();
         fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY,
                 cancellationTokenSource.getToken()
         ).addOnSuccessListener(location -> {
             if (location != null) {
-                Log.d(TAG, "Quick network fix: " + location.getLatitude() + ", " + location.getLongitude());
                 onLocationReceived(location.getLatitude(), location.getLongitude());
             } else {
-                Log.w(TAG, "Network fix null — falling back to GPS");
                 tryGpsCurrentLocation();
             }
-        }).addOnFailureListener(e -> {
-            Log.e(TAG, "getCurrentLocation (balanced) failed: " + e.getMessage());
-            tryGpsCurrentLocation();
-        });
+        }).addOnFailureListener(e -> tryGpsCurrentLocation());
 
-        // ── Step 2: Periodic high-accuracy updates every 30 s ──
         if (!locationUpdatesStarted) {
             LocationRequest request = new LocationRequest.Builder(
                     Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL_MS)
                     .setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL_MS / 2)
                     .setMaxUpdateDelayMillis(60_000L)
                     .build();
-
             fusedLocationClient.requestLocationUpdates(
                     request, locationCallback, getMainLooper());
             locationUpdatesStarted = true;
-            Log.d(TAG, "Periodic location updates started");
         }
     }
 
@@ -275,12 +249,10 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 gpsCts.getToken()
         ).addOnSuccessListener(location -> {
             if (location != null) {
-                Log.d(TAG, "GPS cold-start fix: " + location.getLatitude() + ", " + location.getLongitude());
                 onLocationReceived(location.getLatitude(), location.getLongitude());
             } else {
-                Log.w(TAG, "GPS also returned null — will retry on next periodic callback");
                 Toast.makeText(this,
-                        "⚠️ Can't get your location. Make sure GPS is on and you're outdoors.",
+                        "Can't get your location. Make sure GPS is on and you're outdoors.",
                         Toast.LENGTH_LONG).show();
             }
         }).addOnFailureListener(e ->
@@ -291,36 +263,20 @@ public class PatientDashboardActivity extends AppCompatActivity {
         if (!locationUpdatesStarted) return;
         fusedLocationClient.removeLocationUpdates(locationCallback);
         locationUpdatesStarted = false;
-        Log.d(TAG, "Location updates stopped");
     }
 
-    /**
-     * Single point where a confirmed location is accepted.
-     * Guards against 0,0 and saves to Firebase.
-     */
     private void onLocationReceived(double lat, double lng) {
-        if (lat == 0.0 && lng == 0.0) {
-            Log.w(TAG, "Ignoring 0,0 location");
-            return;
-        }
+        if (lat == 0.0 && lng == 0.0) return;
         currentLatitude  = lat;
         currentLongitude = lng;
         saveLocationToFirebase(lat, lng);
     }
 
-    // -----------------------------------------------------------------------
-    // Firebase helpers
-    // -----------------------------------------------------------------------
     private void saveLocationToFirebase(double latitude, double longitude) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
-
-        mDatabase.child("users").child(user.getUid())
-                .child("latitude").setValue(latitude);
-        mDatabase.child("users").child(user.getUid())
-                .child("longitude").setValue(longitude);
-
-        Log.d(TAG, "✅ Patient location saved: " + latitude + ", " + longitude);
+        mDatabase.child("users").child(user.getUid()).child("latitude").setValue(latitude);
+        mDatabase.child("users").child(user.getUid()).child("longitude").setValue(longitude);
     }
 
     private void loadUserData() {
@@ -337,9 +293,9 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         String phone = dataSnapshot.child("phone").getValue(String.class);
 
                         tvWelcome.setText("Welcome, " + name + "!");
-                        tvUserInfo.setText("Age: " + age +
-                                "\nPhone: " + phone +
-                                "\n\n🔔 Emergency Monitoring: Active");
+                        tvUserInfo.setText("Age: " + age
+                                + "\nPhone: " + phone
+                                + "\n\nEmergency Monitoring: Active");
                     }
 
                     @Override

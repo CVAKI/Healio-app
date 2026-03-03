@@ -65,8 +65,6 @@ public class EmergencySOSActivity extends AppCompatActivity {
         setupListeners();
 
         // ── If location was 0,0 when this screen opened, fetch it fresh from Firebase ──
-        // This handles the race condition where the patient tapped the button
-        // before GPS had a fix.
         if (latitude == 0.0 && longitude == 0.0) {
             refreshLocationFromFirebase();
         }
@@ -120,7 +118,7 @@ public class EmergencySOSActivity extends AppCompatActivity {
                 (TEST_MODE ? "🧪 [TEST MODE — distance check OFF]\n\n" : "") +
                         "⚠️ EMERGENCY SERVICES\n\n" +
                         "🚑  EMERGENCY  — Alerts the nearest available ambulance driver.\n\n" +
-                        "🚨  HIGH EMERGENCY  — Alerts the nearest ambulance AND all doctors simultaneously.");
+                        "🚨  HIGH EMERGENCY  — Instantly alerts the nearest ambulance AND all doctors simultaneously.");
     }
 
     private void setupListeners() {
@@ -164,7 +162,7 @@ public class EmergencySOSActivity extends AppCompatActivity {
 
         String title   = isHighEmergency ? "🚨 HIGH EMERGENCY SOS" : "🚑 EMERGENCY SOS";
         String message = isHighEmergency
-                ? "This will IMMEDIATELY alert:\n\n• Nearest available ambulance driver\n• ALL registered doctors\n\nAre you sure?"
+                ? "This will IMMEDIATELY alert:\n\n• Nearest available ambulance driver\n• ALL registered doctors\n\nBoth will be notified at the same time.\n\nAre you sure?"
                 : "This will alert the NEAREST available ambulance driver.\n\nAre you sure?";
 
         new AlertDialog.Builder(this)
@@ -219,7 +217,8 @@ public class EmergencySOSActivity extends AppCompatActivity {
                         final double alertLng = finalLng;
 
                         Log.d(TAG, "Sending SOS from: " + alertLat + ", " + alertLng
-                                + " | patient: " + patientName);
+                                + " | patient: " + patientName
+                                + " | highEmergency: " + isHighEmergency);
 
                         Map<String, Object> alert = new HashMap<>();
                         alert.put("patientId",    userId);
@@ -236,13 +235,17 @@ public class EmergencySOSActivity extends AppCompatActivity {
 
                         mDatabase.child("emergencyAlerts").child(alertId).setValue(alert)
                                 .addOnSuccessListener(aVoid -> {
-                                    // Search ALL users — no index filter — to avoid index issues
+
+                                    // ── Always alert nearest ambulance ──
                                     findAndNotifyNearestAmbulance(
                                             alertId, patientName, patientPhone,
                                             alertLat, alertLng, INITIAL_RADIUS_KM);
 
+                                    // ── HIGH EMERGENCY: ALSO alert all doctors simultaneously ──
                                     if (isHighEmergency) {
-                                        sendNotificationsToDoctors(alertId);
+                                        sendNotificationsToDoctors(
+                                                alertId, patientName, patientPhone,
+                                                alertLat, alertLng);
                                     }
 
                                     showSuccessDialog(isHighEmergency);
@@ -272,12 +275,6 @@ public class EmergencySOSActivity extends AppCompatActivity {
      * back to client-side filtering but the query itself can return empty on some
      * SDK versions. Scanning all users and filtering in Java is slightly slower
      * but 100% reliable for a small user base.
-     *
-     * Add this to your Firebase database rules to restore the efficient query later:
-     *
-     *   "users": {
-     *     ".indexOn": ["userType"]
-     *   }
      */
     private void findAndNotifyNearestAmbulance(String alertId, String patientName,
                                                String patientPhone,
@@ -294,7 +291,6 @@ public class EmergencySOSActivity extends AppCompatActivity {
         Log.d(TAG, "🔍 Searching radius=" + radiusKm + " km from "
                 + patientLat + ", " + patientLng);
 
-        // Scan ALL users — filter by userType in Java to avoid index requirement
         mDatabase.child("users")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -351,7 +347,6 @@ public class EmergencySOSActivity extends AppCompatActivity {
                             }
                         }
 
-                        // ── Summary — read this in Logcat to find the root cause ──
                         Log.d(TAG, "Search done (radius=" + radiusKm + " km): "
                                 + "totalUsers=" + totalUsers
                                 + " | ambulanceDrivers=" + ambulanceDrivers
@@ -406,9 +401,16 @@ public class EmergencySOSActivity extends AppCompatActivity {
     }
 
     // -----------------------------------------------------------------------
-    // Doctor notifications (high-emergency only)
+    // Doctor notifications (high-emergency) — NOW includes full patient info
     // -----------------------------------------------------------------------
-    private void sendNotificationsToDoctors(String alertId) {
+    /**
+     * Sends an "emergency" notification to every registered doctor simultaneously.
+     * Includes patientName, patientPhone, and coordinates so IncomingSOSActivity
+     * can display all details without an extra Firebase lookup.
+     */
+    private void sendNotificationsToDoctors(String alertId, String patientName,
+                                            String patientPhone,
+                                            double patientLat, double patientLng) {
         mDatabase.child("users")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -419,17 +421,28 @@ public class EmergencySOSActivity extends AppCompatActivity {
                             if (!"doctor".equals(userType)) continue;
 
                             String doctorId = userSnap.getKey();
+
                             Map<String, Object> notif = new HashMap<>();
-                            notif.put("type",      "emergency");
-                            notif.put("alertId",   alertId);
-                            notif.put("timestamp", System.currentTimeMillis());
-                            notif.put("read",      false);
+                            notif.put("type",         "emergency");
+                            notif.put("alertId",      alertId);
+                            // ── NEW: include full patient details ──
+                            notif.put("patientName",  patientName  != null ? patientName  : "Unknown");
+                            notif.put("patientPhone", patientPhone != null ? patientPhone : "N/A");
+                            notif.put("latitude",     patientLat);
+                            notif.put("longitude",    patientLng);
+                            notif.put("timestamp",    System.currentTimeMillis());
+                            notif.put("read",         false);
 
                             mDatabase.child("notifications").child(doctorId).push()
-                                    .setValue(notif);
+                                    .setValue(notif)
+                                    .addOnSuccessListener(v ->
+                                            Log.d(TAG, "✅ Doctor notified: " + doctorId))
+                                    .addOnFailureListener(e ->
+                                            Log.e(TAG, "❌ Failed to notify doctor " + doctorId
+                                                    + ": " + e.getMessage()));
                             count++;
                         }
-                        Log.d(TAG, "Notified " + count + " doctor(s)");
+                        Log.d(TAG, "Notified " + count + " doctor(s) for HIGH EMERGENCY alertId=" + alertId);
                     }
 
                     @Override
@@ -456,8 +469,8 @@ public class EmergencySOSActivity extends AppCompatActivity {
     // -----------------------------------------------------------------------
     private void showSuccessDialog(boolean isHighEmergency) {
         String msg = isHighEmergency
-                ? "Emergency alerts sent to:\n\n• Nearest ambulance driver\n• All registered doctors\n\nHelp is on the way!"
-                : "Your nearest available ambulance driver has been alerted.\n\nHelp is on the way!";
+                ? "🚨 HIGH EMERGENCY alerts sent to:\n\n• Nearest ambulance driver\n• All registered doctors\n\nBoth have been notified simultaneously.\nHelp is on the way!"
+                : "🚑 Your nearest available ambulance driver has been alerted.\n\nHelp is on the way!";
 
         new AlertDialog.Builder(this)
                 .setTitle("✅ SOS Alert Sent!")
