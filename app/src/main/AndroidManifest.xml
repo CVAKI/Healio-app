@@ -125,6 +125,17 @@
             android:turnScreenOn="true"
             android:theme="@style/Theme.Healio.FullScreen" />
 
+        <!-- ✅ FIX: Added showWhenLocked, turnScreenOn, singleTop so alert
+             appears on lock screen even when driver's phone is sleeping -->
+        <activity
+            android:name=".IncomingAmbulanceSOSActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.Healio.FullScreen" />
+
         <activity
             android:name=".ChatActivity"
             android:exported="false"
@@ -141,10 +152,6 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <activity
-            android:name=".IncomingAmbulanceSOSActivity"
-            android:screenOrientation="portrait" />
-
         <service
             android:name=".SOSRingtoneService"
             android:enabled="true"
@@ -159,6 +166,16 @@
 
         <service
             android:name=".PatientNotificationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- ✅ FIX: AmbulanceSOSListenerService was COMPLETELY MISSING from
+             the manifest. Without this entry Android silently refuses to start
+             the service on API 26+, so the driver never receives any alert.
+             This is the PRIMARY reason the ambulance driver gets no notification. -->
+        <service
+            android:name=".AmbulanceSOSListenerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
